@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.practice.product.domain.ProductRepository">
+
+    <resultMap id="Product" type="com.example.practice.product.domain.Product">
+        <result property="productId"                   column="productId"  />
+        <result property="productName"                 column="productName" />
+        <result property="writer.userId"               column="writer" />
+        <result property="image"                       column="image" />
+        <result property="description"                 column="description" />
+        <result property="registeredDate"              column="registeredDate" />
+        <result property="category.categoryId"         column="categoryId" />
+
+        <association property="money" javaType="com.example.practice.product.domain.Money">
+            <result property="price" column="price"/>
+        </association>
+    </resultMap>
+
+
+    <insert id="saveProduct" parameterType="com.example.practice.product.domain.Product"
+            useGeneratedKeys="true"  keyProperty="productId" >
+      INSERT INTO PRODUCT
+      (productName, writer, image, price, description, registeredDate, categoryId)
+      VALUES (#{productName}, #{writer.userId}, #{image}, #{money}, #{description}, now(), #{category.categoryId})
+    </insert>
+
+
+    <select id="findById" parameterType="long" resultMap="Product">
+        SELECt
+            *
+        FROM PRODUCT
+        WHERE productId = #{value}
+    </select>
+</mapper>
