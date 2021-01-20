@@ -8,6 +8,8 @@ import com.example.practice.product.domain.support.ProductDomainBuilder;
 import com.example.practice.user.User;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
+
 
 public class ProductTest extends ProductDomainBuilder {
 
@@ -35,7 +37,7 @@ public class ProductTest extends ProductDomainBuilder {
 		Product updateProduct = Product.builder()
 				.productId(1L)
 				.writer(new User())
-				.money(new Money(updateMoney))
+				.money(new Money(BigInteger.valueOf(updateMoney)))
 				.category(Category.builder().categoryId(1L).build())
 				.productName(updateTitle)
 				.description(updateContent)

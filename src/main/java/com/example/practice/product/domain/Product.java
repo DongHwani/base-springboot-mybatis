@@ -51,7 +51,7 @@ public class Product {
 		return image;
 	}
 
-	public int getMoney() {
+	public BigInteger getMoney() {
 		return money.getPrice();
 	}
 

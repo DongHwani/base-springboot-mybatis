@@ -2,19 +2,21 @@ package com.example.practice.product.domain;
 
 import com.example.practice.product.domain.exception.InvalidMoneyPriceException;
 
+import java.math.BigInteger;
+
 
 public class Money {
 
-	private final int price;
+	private final BigInteger price;
 
-	public Money(final int price) {
-		if (price <= 0) {
+	public Money(final BigInteger price) {
+		if (price.signum() != 1) {
 			throw new InvalidMoneyPriceException();
 		}
 		this.price = price;
 	}
 
-    public int getPrice() {
-		return this.price;
+    public BigInteger getPrice() {
+		return price;
     }
 }
