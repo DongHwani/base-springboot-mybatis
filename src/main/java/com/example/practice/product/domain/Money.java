@@ -7,10 +7,11 @@ import java.math.BigInteger;
 
 public class Money {
 
-	private final BigInteger price;
+	private static final int NEGATIVE_OR_ZERO = 1;
+	private BigInteger price;
 
 	public Money(final BigInteger price) {
-		if (price.signum() != 1) {
+		if (price.signum() != NEGATIVE_OR_ZERO) {
 			throw new InvalidMoneyPriceException();
 		}
 		this.price = price;
