@@ -3,9 +3,9 @@ package com.example.practice.product.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import com.example.practice.category.Category;
+import com.example.practice.category.domain.Category;
 import com.example.practice.product.domain.support.ProductDomainBuilder;
-import com.example.practice.user.User;
+import com.example.practice.member.domain.Member;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -16,7 +16,7 @@ public class ProductTest extends ProductDomainBuilder {
 	@Test
 	public void createInstance() {
 		//Given & When
-		Product item = ProductDomainBuilder.provideProduct();
+		Product item = ProductDomainBuilder.provideProductBread();
 		
 		//Then
 		assertThat(item).isEqualTo(Product.builder().productId(1L).build());
@@ -25,7 +25,7 @@ public class ProductTest extends ProductDomainBuilder {
 	@Test
 	public void updateProductTest(){
 		//Given
-		Product product = ProductDomainBuilder.provideProduct();
+		Product product = ProductDomainBuilder.provideProductBread();
 
 		String updateTitle = "수정된 제목";
 		String updateContent = "수정된 본문";
@@ -36,8 +36,8 @@ public class ProductTest extends ProductDomainBuilder {
 		//When
 		Product updateProduct = Product.builder()
 				.productId(1L)
-				.writer(new User())
-				.money(new Money(BigInteger.valueOf(updateMoney)))
+				.seller(new Member())
+				.price(new Money(BigInteger.valueOf(updateMoney)))
 				.category(Category.builder().categoryId(1L).build())
 				.productName(updateTitle)
 				.description(updateContent)

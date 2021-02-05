@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.practice.product.domain.ProductRepository">
+
+    <resultMap id="Product" type="com.example.practice.product.domain.Product">
+        <id property="productId"       column="productId"/>
+        <result property="productName" column="productName"/>
+
+        <result property="image" column="image"/>
+        <result property="description" column="description"/>
+        <result property="registeredDate" column="registeredDate"/>
+        <result property="category.categoryId" column="categoryId"/>
+<!--                <association property="price" column="price" javaType="com.example.practice.product.domain.Money">
+                    <constructor>
+                        <arg  javaType="java.math.BigInteger" ></arg>
+                    </constructor>
+                </association>-->
+        <association property="seller"         javaType="com.example.practice.member.domain.Member">
+            <id property="memberSequence"       column="memberSequence"/>
+            <result property="memberId"         column="memberId"/>
+            <result property="phoneNumber"      column="phoneNumber"/>
+            <result property="description"      column="address"/>
+        </association>
+    </resultMap>
+
+    <select id="findById" parameterType="long" resultMap="Product">
+        SELECT
+            productId, productName, sellerId, image, description, categoryId
+        FROM products INNER JOIN members
+        ON products.sellerId = members.memberId
+        WHERE productId = #{productId}
+    </select>
+
+
+
+    <insert id="save" parameterType="com.example.practice.product.domain.Product"
+            useGeneratedKeys="true" keyProperty="productId">
+      INSERT INTO products
+        (productName, sellerId, image, price, description, registeredDate, categoryId)
+      VALUES (#{productName}, #{seller.memberId}, #{image}, #{price.price}, #{description}, sysdate(), #{category.categoryId})
+    </insert>
+
+    <select id="findProductsByCategoryId"  resultMap="Product">
+        SELECt
+            *
+        FROM PRODUCT
+        WHERE categoryId = #{categoryId}
+        ORDER BY ${search.type} ${search.sort}
+    </select>
+
+    <select id="findProductsByKeyword" parameterType="string" resultMap="Product">
+        SELECT
+            *
+        FROM PRODUCT
+        WHERE
+            productName LIKE CONCAT('%',#{value},'%')
+
+    </select>
+
+</mapper>

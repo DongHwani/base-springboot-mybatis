@@ -3,23 +3,30 @@ package com.example.practice.product.application;
 import com.example.practice.product.domain.Product;
 import com.example.practice.product.domain.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import java.util.List;
 
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductService {
 
-    private static final Logger logger = LogManager.getLogger(ProductService.class);
     private final ProductRepository productRepository;
 
     public void saveProduct(Product product){
-        logger.info("{}", product);
-        productRepository.saveProduct(product);
+        productRepository.save(product);
+    }
+    public List<Product> findProductsByCategoryId(Long categoryId) {
+        return productRepository.findProductsByCategoryId(categoryId);
     }
 
+    public Product findById(Long productId) {
+        return productRepository.findById(productId)
+                    .orElseThrow(() -> new IllegalArgumentException());
+    }
+
+    public List<Product> findProductsByKeyword(String keyword) {
+        return productRepository.findProductsByKeyword(keyword);
+    }
 }

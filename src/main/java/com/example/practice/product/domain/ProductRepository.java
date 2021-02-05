@@ -1,17 +1,22 @@
 package com.example.practice.product.domain;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 @Mapper
 public interface ProductRepository {
 
-    Long saveProduct(Product product);
+    Long save(Product product);
 
     Optional<Product> findById(final Long productId);
 
-    Products findByAll();
+    List<Product> findProductsByCategoryId( final Long categoryId);
+
+    List<Product> findProductsByKeyword(String keyword);
+
 }
