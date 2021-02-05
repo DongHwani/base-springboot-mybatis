@@ -3,8 +3,8 @@ package com.example.practice.product.domain;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
-import com.example.practice.category.Category;
-import com.example.practice.user.User;
+import com.example.practice.category.domain.Category;
+import com.example.practice.member.domain.Member;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,14 +14,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(exclude = {"productName", "image", "description", "registeredDate", "money", "category", "writer"})
+@EqualsAndHashCode(exclude = {"productName", "image", "description", "registeredDate", "price", "category", "seller"})
 public class Product {
 	
 	private Long productId;
 	private String productName;
-	private User writer;
+	private Member seller;
 	private String image;
-	private Money money;
+	private Money price;
 	private String description;
 	private LocalDateTime registeredDate;
 	private Category category;
@@ -30,7 +30,7 @@ public class Product {
     public Product update(Product updateProduct) {
     	this.productName = updateProduct.productName;
     	this.image = updateProduct.image;
-    	this.money = updateProduct.money;
+    	this.price = updateProduct.price;
     	this.description = updateProduct.description;
 		return this;
     }
@@ -43,8 +43,8 @@ public class Product {
 		return productName;
 	}
 
-	public User getWriter() {
-		return writer;
+	public Member getSeller() {
+		return seller;
 	}
 
 	public String getImage() {
@@ -52,7 +52,7 @@ public class Product {
 	}
 
 	public BigInteger getMoney() {
-		return money.getPrice();
+		return price.getPrice();
 	}
 
 	public String getDescription() {
