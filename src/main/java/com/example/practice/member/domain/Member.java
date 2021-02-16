@@ -1,13 +1,12 @@
 package com.example.practice.member.domain;
 
 
-import com.example.practice.purchase.domain.Address;
+import com.example.practice.order.domain.Address;
 import lombok.*;
 
 @Getter
 @Builder @ToString
 @AllArgsConstructor @NoArgsConstructor
-@EqualsAndHashCode(exclude ={ "password", "phoneNumber", "address", "detailAddress", "zipCode"})
 public class Member {
 
     private Long memberSequence;

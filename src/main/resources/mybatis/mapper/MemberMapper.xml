@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.practice.member.domain.MemberRepository">
+
+    <resultMap id="member" type="com.example.practice.member.domain.Member">
+        <result property="memberSequence"                   column="memberSequence"  />
+        <result property="memberId"                         column="memberId"  />
+        <result property="password"                         column="password" />
+        <result property="address.address"                  column="address"  />
+        <result property="address.detailAddress"            column="detailAddress"  />
+        <result property="address.zipCode"                  column="zipCode" />
+    </resultMap>
+
+    <insert id="save" parameterType="com.example.practice.member.domain.Member"
+            useGeneratedKeys="true"  keyProperty="memberSequence" >
+      INSERT INTO members
+        (memberId, password, phoneNumber, address, detailAddress, zipcode)
+      VALUES
+        (#{memberId}, #{password}, #{phoneNumber}, #{address.address}, #{address.detailAddress}, #{address.zipCode})
+    </insert>
+
+
+    <select id="findByMemberId" parameterType="com.example.practice.member.domain.Member"
+            resultMap="member">
+        SELECT
+           memberId, phoneNumber, address, detailAddress, zipCode, password, memberSequence
+        FROM members
+        WHERE
+            memberId = #{memberId}
+    </select>
+
+
+    <select id="existMember" parameterType="string" resultType="boolean">
+        SELECT
+           CASE WHEN Count(memberId)>0 THEN 1
+           ELSE 0 END
+        FROM members
+            WHERE memberId=#{value}
+        </select>
+
+</mapper>
