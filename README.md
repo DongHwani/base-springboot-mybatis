@@ -27,7 +27,7 @@ public interface CategoryRepository {
 ~~~
 @Mapper 어노테이션이 붙어있으면 해당 인터페이스는 스프링 컨테이너에 bean으로 등록된다.
 
-2-2) mapper.xml 생성 
+2-2) mapper.xml 생성   
 ![프로젝트구조](./img/프로젝트구조.png)
 ~~~xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -45,7 +45,7 @@ public interface CategoryRepository {
     </insert>
 </mapper>
 ~~~
-이렇게 두 개의 파일을 프로젝트에 생성하였다면, 두 개의 파일을 이어줄 수 있는 `경로설정`이 필요하다. 왜냐하면
+두 개의 파일을 프로젝트에 생성하였다면, 두 개의 파일을 이어줄 수 있는 `경로설정`이 필요하다. 왜냐하면
 인터페이스를 통해 해당 xml의 쿼리문을 수행해야하는데 이 mapper 인터페이스가 xml 파일위치가 어디에 있는지 알 수 없기 
 때문이다.   
 
@@ -62,29 +62,14 @@ mybatis.mapper-locations=mybatis/mapper/*.xml
 
 ##### 3. 연관관계 맵핑
 
-3.1) has one 관계 
+3.1) has one 관계   
 has one 관계인 객체로 맵핑할 경우 `<association>` 태그로 맵핑할 수 있으며, 두 가지 맵핑 전략이 존재한다.  
 
 - Nested Select : 다른 맵핑된 SQL 구문을 실행하여 맵핑하는 방법
 - Nested Result : 하나의 JOIN 쿼리로 결과를 맵핑하는 방법
 
-3.1.1) Nested Result 
-
-~~~xml
-    <resultMap id="Product" type="com.example.practice.product.domain.Product">
-        <id property="productId"       column="productId"/>
-        <result property="productName" column="productName"/>
-        <result property="image" column="image"/>
-        <result property="description" column="description"/>
-        <result property="registeredDate" column="registeredDate"/>
-        <association property="seller"         javaType="com.example.practice.member.domain.Member">
-            <id property="memberSequence"       column="memberSequence"/>
-            <result property="memberId"         column="memberId"/>
-            <result property="phoneNumber"      column="phoneNumber"/>
-            <result property="description"      column="address"/>
-        </association>
-    </resultMap>    
-~~~
+3.1.1) Nested Result  
+Nested Result는 `join`문을 사용하여 데이터를 가져오는 방식이다. 아래의 예제를 통해 조금 더 자세히 살펴보겠다.
 ~~~java
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -103,11 +88,48 @@ public class Product {
     
     //생략.. 
 }
-~~~
- 
- 
- 맵핑하는 전략은 2가지 방식이 있다. 
+@Getter
+@Builder @ToString
+@AllArgsConstructor @NoArgsConstructor
+@EqualsAndHashCode(exclude ={ "password", "phoneNumber", "address", "detailAddress", "zipCode"})
+public class Member {
 
+    private Long memberSequence;
+    private String memberId;
+    private String password;
+    private String phoneNumber;
+
+}
+~~~
+Product 도메인이 Member라는 도메인을 값으로 가지고 있다. 이러한 has one 관계일 때 Mybatis mapper에 association 태그를 사용하여
+테이블과 도메인 모델간의 맵핑을 할 수 있다. 
+
+~~~xml
+    <resultMap id="Product" type="com.example.practice.product.domain.Product">
+        <id property="productId"       column="productId"/>
+        <result property="productName" column="productName"/>
+        <result property="image" column="image"/>
+        <result property="description" column="description"/>
+        <result property="registeredDate" column="registeredDate"/>
+        <association property="seller"         javaType="com.example.practice.member.domain.Member">
+            <id property="memberSequence"       column="memberSequence"/>
+            <result property="memberId"         column="memberId"/>
+            <result property="phoneNumber"      column="phoneNumber"/>
+            <result property="description"      column="address"/>
+        </association>
+    </resultMap>
+
+<!-- Query --> 
+    <select id="findById" parameterType="long" resultMap="Product">
+        SELECT
+            productId, productName, sellerId, image, description, categoryId
+        FROM products INNER JOIN members
+        ON products.sellerId = members.memberId
+        WHERE productId = #{productId}
+    </select>
+~~~
+
+3.1.2) Nested Select
 
 
 
