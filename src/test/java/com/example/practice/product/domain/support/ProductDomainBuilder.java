@@ -4,7 +4,7 @@ import com.example.practice.category.domain.Category;
 import com.example.practice.product.domain.Money;
 import com.example.practice.product.domain.Product;
 import com.example.practice.member.domain.Member;
-import com.example.practice.purchase.domain.Address;
+import com.example.practice.order.domain.Address;
 import io.github.benas.randombeans.EnhancedRandomBuilder;
 
 import java.math.BigInteger;

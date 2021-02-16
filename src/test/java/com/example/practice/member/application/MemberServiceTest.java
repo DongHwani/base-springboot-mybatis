@@ -1,7 +1,7 @@
 package com.example.practice.member.application;
 
 import com.example.practice.member.domain.Member;
-import com.example.practice.member.interfaces.exception.DuplicateMemberIdException;
+import com.example.practice.member.handler.DuplicateMemberIdException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

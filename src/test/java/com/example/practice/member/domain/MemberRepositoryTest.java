@@ -1,5 +1,6 @@
 package com.example.practice.member.domain;
 
+import com.example.practice.order.domain.Address;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +23,14 @@ public class MemberRepositoryTest {
                 .memberId("user")
                 .password("user")
                 .phoneNumber("010")
+                .address(Address.builder().zipCode("010-555").detailAddress("상세").address("주소").build())
                 .build();
 
         //When
-        int savedUser = memberRepository.save(member);
+        memberRepository.save(member);
 
         //Then
-        assertThat(savedUser).isEqualTo(1);
+        assertThat(member).isNotNull();
     }
 
     @Test

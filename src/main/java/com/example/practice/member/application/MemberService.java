@@ -2,8 +2,8 @@ package com.example.practice.member.application;
 
 import com.example.practice.member.domain.Member;
 import com.example.practice.member.domain.MemberRepository;
-import com.example.practice.member.interfaces.exception.DuplicateMemberIdException;
-import com.example.practice.member.interfaces.exception.NotMatchedMemberException;
+import com.example.practice.member.handler.DuplicateMemberIdException;
+import com.example.practice.member.handler.NotMatchedMemberException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,6 @@ public class MemberService {
 
     @Autowired
     private MemberRepository memberRepository;
-
 
     public Member save(Member member) {
         validateDuplicateMemberId(member);
