@@ -27,13 +27,17 @@
 
     <select id="findById" parameterType="long" resultMap="Product">
         SELECT
-            productId, productName, sellerId, image, description, categoryId
-        FROM products INNER JOIN members
-        ON products.sellerId = members.memberId
-        WHERE productId = #{productId}
+            p.productId,
+            p.productName,
+            p.image,
+            p.description,
+            p.categoryId,
+            m.memberSequence,
+            m.memberId
+        FROM products p INNER JOIN members m
+        ON p.sellerId = m.memberId
+        WHERE p.productId = #{productId}
     </select>
-
-
 
     <insert id="save" parameterType="com.example.practice.product.domain.Product"
             useGeneratedKeys="true" keyProperty="productId">

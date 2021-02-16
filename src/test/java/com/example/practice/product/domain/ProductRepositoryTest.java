@@ -15,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigInteger;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -73,7 +72,6 @@ public class ProductRepositoryTest extends ProductDomainBuilder {
     public void findById(){
         //Given
         Product product = Product.builder()
-                .productId(1L)
                 .seller(seller)
                 .price(new Money(BigInteger.valueOf(5000)))
                 .category(Category.builder().categoryId(8L).build())
@@ -86,19 +84,13 @@ public class ProductRepositoryTest extends ProductDomainBuilder {
         //When
         Product findProduct = productRepository.findById(product.getProductId()).get();
 
-        assertThat(product).isEqualTo(findProduct);
-    }
-
-
-    @Test
-    public void findProductsByKeyword(){
-        String keyword = "바게트";
-        List<Product> products = productRepository.findProductsByKeyword(keyword);
-
+        //Then
         assertAll(
-                () -> assertThat(products).isNotNull()
+                () -> assertThat(product).isEqualTo(findProduct),
+                () -> assertThat(findProduct.getSeller()).isNotNull()
         );
     }
+
     @Test
     public void saveEvent(){
         Product event1 = Product.builder()
