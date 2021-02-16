@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.practice.order.domain.OrderRepository">
+
+    <resultMap id="order" type="com.example.practice.order.domain.Order">
+        <id property="purchaseId"               column="purchaseId"/>
+        <result property="price"                column="price"/>
+        <association property="product"         javaType="com.example.practice.product.domain.Product">
+            <id property="productId"            column="productId"/>
+            <result property="productName"      column="productName"/>
+            <result property="productName"      column="productName"/>
+            <result property="image"            column="image"/>
+            <result property="description"      column="description"/>
+        </association>
+        <association property="purchaseAddress"     javaType="com.example.practice.order.domain.Address">
+            <result property="address"       column="address"/>
+            <result property="detailAddress" column="detailAddress"/>
+            <result property="zipCode"       column="zipcode"/>
+        </association>
+    </resultMap>
+
+    <insert id="save" parameterType="com.example.practice.order.domain.Order"
+            useGeneratedKeys="true"  keyProperty="purchaseId" >
+      INSERT INTO order
+      (productId, memberSequence, price, address, detailAddress, zipcode)
+      VALUES (#{product.productId}, #{buyer.memberSequence}, #{price}, #{purchaseAddress.address},
+              #{purchaseAddress.detailAddress}, #{purchaseAddress.zipCode}
+      )
+
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="order">
+        SELECT
+         *
+        FROM order JOIN product
+        ON order.productId = product.productId
+        WHERE
+            purchaseId = #{value}
+    </select>
+
+    <select id="findAll" parameterType="long" resultMap="order">
+        SELECT
+         *
+        FROM order JOIN product
+        ON order.productId = product.productId
+        WHERE
+            memberSequence = #{value}
+    </select>
+</mapper>
