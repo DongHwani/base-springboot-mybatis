@@ -7,16 +7,16 @@
     <resultMap id="Product" type="com.example.practice.product.domain.Product">
         <id property="productId"       column="productId"/>
         <result property="productName" column="productName"/>
-
         <result property="image" column="image"/>
         <result property="description" column="description"/>
         <result property="registeredDate" column="registeredDate"/>
         <result property="category.categoryId" column="categoryId"/>
-<!--                <association property="price" column="price" javaType="com.example.practice.product.domain.Money">
-                    <constructor>
-                        <arg  javaType="java.math.BigInteger" ></arg>
-                    </constructor>
-                </association>-->
+        <result property="price.price" column="price"/>
+        <association property="price"  javaType="com.example.practice.product.domain.Money">
+           <constructor>
+              <arg  column="price" javaType="java.math.BigInteger" ></arg>
+           </constructor>
+        </association>
         <association property="seller"         javaType="com.example.practice.member.domain.Member">
             <id property="memberSequence"       column="memberSequence"/>
             <result property="memberId"         column="memberId"/>
@@ -30,6 +30,7 @@
             p.productId,
             p.productName,
             p.image,
+            p.price,
             p.description,
             p.categoryId,
             m.memberSequence,

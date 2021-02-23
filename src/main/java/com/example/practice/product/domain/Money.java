@@ -10,6 +10,8 @@ public class Money {
 	private static final int NEGATIVE_OR_ZERO = 1;
 	private BigInteger price;
 
+	private Money(){}
+
 	public Money(final BigInteger price) {
 		if (price.signum() != NEGATIVE_OR_ZERO) {
 			throw new InvalidMoneyPriceException();

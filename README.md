@@ -65,11 +65,10 @@ mybatis.mapper-locations=mybatis/mapper/*.xml
 3.1) has one 관계   
 has one 관계인 객체로 맵핑할 경우 `<association>` 태그로 맵핑할 수 있으며, 두 가지 맵핑 전략이 존재한다.  
 
-- Nested Select : 다른 맵핑된 SQL 구문을 실행하여 맵핑하는 방법
 - Nested Result : 하나의 JOIN 쿼리로 결과를 맵핑하는 방법
+- Nested Select : 다른 맵핑된 SQL 구문을 실행하여 맵핑하는 방법
 
 3.1.1) Nested Result  
-Nested Result는 `join`문을 사용하여 데이터를 가져오는 방식이다. 아래의 예제를 통해 조금 더 자세히 살펴보겠다.
 ~~~java
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -100,11 +99,14 @@ public class Member {
     private String phoneNumber;
 
 }
-~~~
-Product 도메인이 Member라는 도메인을 값으로 가지고 있다. 이러한 has one 관계일 때 Mybatis mapper에 association 태그를 사용하여
-테이블과 도메인 모델간의 맵핑을 할 수 있다. 
-
+~~~ 
 ~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.practice.product.domain.ProductRepository">
+
     <resultMap id="Product" type="com.example.practice.product.domain.Product">
         <id property="productId"       column="productId"/>
         <result property="productName" column="productName"/>
@@ -119,15 +121,27 @@ Product 도메인이 Member라는 도메인을 값으로 가지고 있다. 이�
         </association>
     </resultMap>
 
-<!-- Query --> 
     <select id="findById" parameterType="long" resultMap="Product">
         SELECT
-            productId, productName, sellerId, image, description, categoryId
-        FROM products INNER JOIN members
-        ON products.sellerId = members.memberId
-        WHERE productId = #{productId}
+            p.productId,
+            p.productName,
+            p.image,
+            p.description,
+            p.categoryId,
+            m.memberSequence,
+            m.memberId
+        FROM products p INNER JOIN members m
+        ON p.sellerId = m.memberId
+        WHERE p.productId = #{productId}
     </select>
+
+</mapper>
 ~~~
+Product 도메인이 Member타입의 seller라는 객체를 값으로 가지고 있었고, 이를 association 태그와 JOIN쿼리문을 사용하여
+resultMap에 맵핑시킬 수 있다.  
+
+<테스트결과>
+![association](./img/Nested_Result_hasone.png)
 
 3.1.2) Nested Select
 
@@ -135,7 +149,7 @@ Product 도메인이 Member라는 도메인을 값으로 가지고 있다. 이�
 
 3-2) has many 관계
 
-3-3) 생성자 검증 
+3-3) 생성자를 통한 객체 맵핑  
 
 
 [Refference]

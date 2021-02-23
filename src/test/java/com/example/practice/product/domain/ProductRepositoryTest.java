@@ -3,6 +3,7 @@ package com.example.practice.product.domain;
 import com.example.practice.category.domain.Category;
 import com.example.practice.member.domain.Member;
 import com.example.practice.member.domain.MemberRepository;
+import com.example.practice.product.domain.exception.InvalidMoneyPriceException;
 import com.example.practice.product.domain.support.ProductDomainBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @ExtendWith(SpringExtension.class)
@@ -89,6 +91,15 @@ public class ProductRepositoryTest extends ProductDomainBuilder {
                 () -> assertThat(product).isEqualTo(findProduct),
                 () -> assertThat(findProduct.getSeller()).isNotNull()
         );
+    }
+
+    @Test
+    public void findByIdThenFail(){
+        assertThatThrownBy(() ->
+                productRepository.findById(47L).get()
+        ).isInstanceOf(InvalidMoneyPriceException.class);
+
+
     }
 
     @Test
