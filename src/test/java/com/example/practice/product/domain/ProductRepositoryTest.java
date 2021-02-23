@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mybatis.spring.MyBatisSystemException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -96,10 +97,8 @@ public class ProductRepositoryTest extends ProductDomainBuilder {
     @Test
     public void findByIdThenFail(){
         assertThatThrownBy(() ->
-                productRepository.findById(47L).get()
-        ).isInstanceOf(InvalidMoneyPriceException.class);
-
-
+                productRepository.findById(46L).get()
+        ).isInstanceOf(MyBatisSystemException.class);
     }
 
     @Test

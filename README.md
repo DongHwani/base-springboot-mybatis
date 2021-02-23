@@ -144,14 +144,73 @@ resultMap에 맵핑시킬 수 있다.
 ![association](./img/Nested_Result_hasone.png)
 
 3.1.2) Nested Select
-
-
-
 3-2) has many 관계
 
 3-3) 생성자를 통한 객체 맵핑  
+Product 객체 내부에는 Money라는 객체가 있다. 
+이 Money 객체는 양수의 값만 받을 수 있도록 생성자에 제약사항을 걸어놨다. 
+(Java bean 규약에 따르는 기본생성자가 있어야 Mapping이 가능하여 private 생성자를 추가하였다 )
+~~~java
+public class Product {
+	
+	private Long productId;
+	private String productName;
+	private Money price;
+    // 생략..
+}
 
+public class Money {
 
+	private static final int NEGATIVE_OR_ZERO = 1;
+	private BigInteger price;
+
+	private Money(){}
+
+	public Money(final BigInteger price) {
+		if (price.signum() != NEGATIVE_OR_ZERO) {
+			throw new InvalidMoneyPriceException();
+		}
+		this.price = price;
+	}
+
+	public BigInteger getPrice() {
+		return price;
+    }
+}
+~~~
+DB에서 조회 후 해당 값을 Money 객체의 생성자 파라미터로 넘겨주려면 `<constructor>`태그를 사용하여
+인스턴스 생성시에 조회 된 결과값을 파라미터로 넘겨줄 수 있다. 
+~~~xml
+    <resultMap id="Product" type="com.example.practice.product.domain.Product">
+        <id property="productId"       column="productId"/>
+        <result property="productName" column="productName"/>
+        <association property="price"  javaType="com.example.practice.product.domain.Money">
+           <constructor>
+              <arg  column="price" javaType="java.math.BigInteger" ></arg>
+           </constructor>
+        </association>
+        <!-- 생략 -->
+    </resultMap>
+~~~
+`<arg>`태그를 사용하여 Mapping된 결과값을 생성자 파라미터로 넘겨주면, Money 객체 생성자에 있는 음수값에 대한 유효성검사
+를 거치게된다. 
+
+만약 데이터베이스에 강제로 실수로 음수값을 insert했다고 가정해보겠다. 
+
+![음수값](./img/음수값insert.png)
+가격이 -1인 상품은 도메인 규칙에 어긋난다. 위의 생성자 태그를 사용하여 가격이 -1인 상품을 가져 올 경우 Reflection 예외가 발생하기 떄문에
+도메인 규칙을 지킬 수 있게 된다. 
+
+~~~java
+public class ProductRepositoryTest extends ProductDomainBuilder {
+    @Test
+    public void findByIdThenFail(){
+        assertThatThrownBy(() ->
+                productRepository.findById(46L).get()
+        ).isInstanceOf(MyBatisSystemException.class);
+    }
+}
+~~~
 [Refference]
 - https://mybatis.org/spring-boot-starter/mybatis-spring-boot-autoconfigure
 - https://blog.mybatis.org/2019/01/mybatis-350-released.html
