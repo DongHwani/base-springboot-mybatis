@@ -1,21 +1,22 @@
 package com.example.practice.order.domain;
 
 import com.example.practice.member.domain.Member;
+import com.example.practice.product.domain.Money;
 import com.example.practice.product.domain.Product;
 import lombok.*;
 
 import java.math.BigInteger;
+import java.util.List;
 
-@Builder @EqualsAndHashCode(exclude = {"product", "buyer", "price", "purchaseAddress"})
+@Builder @EqualsAndHashCode(exclude = { "buyer", "orderLines" })
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter @ToString
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order {
 
-    private Long purchaseId;
-    private Product product;
+    private Long orderId;
     private Member buyer;
-    private BigInteger price;
-    private Address purchaseAddress;
+    private Money totalPrice;
+    private List<Product> orderLines;
 
 }

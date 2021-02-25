@@ -4,48 +4,41 @@
 
 <mapper namespace="com.example.practice.order.domain.OrderRepository">
 
-    <resultMap id="order" type="com.example.practice.order.domain.Order">
-        <id property="purchaseId"               column="purchaseId"/>
-        <result property="price"                column="price"/>
-        <association property="product"         javaType="com.example.practice.product.domain.Product">
-            <id property="productId"            column="productId"/>
-            <result property="productName"      column="productName"/>
-            <result property="productName"      column="productName"/>
-            <result property="image"            column="image"/>
-            <result property="description"      column="description"/>
+    <resultMap id="order" type="order">
+        <id property="orderId"                  column="orderId"/>
+        <association property="buyer"           javaType="com.example.practice.member.domain.Member">
+            <id property="memberSequence"       column="memberSequence"/>
+            <result property="memberId"         column="memberId"/>
         </association>
-        <association property="purchaseAddress"     javaType="com.example.practice.order.domain.Address">
-            <result property="address"       column="address"/>
-            <result property="detailAddress" column="detailAddress"/>
-            <result property="zipCode"       column="zipcode"/>
-        </association>
+        <collection property="orderProducts"     javaType="com.example.practice.product.domain.Product">
+            <id property="productId"             column="productId"/>
+            <result property="productName"       column="productName"/>
+            <association property="price"  javaType="com.example.practice.product.domain.Money">
+                <constructor>
+                    <arg  column="price" javaType="java.math.BigInteger" ></arg>
+                </constructor>
+            </association>
+        </collection>
     </resultMap>
 
-    <insert id="save" parameterType="com.example.practice.order.domain.Order"
-            useGeneratedKeys="true"  keyProperty="purchaseId" >
-      INSERT INTO order
-      (productId, memberSequence, price, address, detailAddress, zipcode)
-      VALUES (#{product.productId}, #{buyer.memberSequence}, #{price}, #{purchaseAddress.address},
-              #{purchaseAddress.detailAddress}, #{purchaseAddress.zipCode}
-      )
-
+    <insert id="saveOrder" parameterType="com.example.practice.order.domain.Order"
+            useGeneratedKeys="true"  keyProperty="orderId" >
+      INSERT INTO orders
+        (orderId, memberId, totalPrice)
+      VALUES
+        (#{orderId}, #{buyer.memberId}, #{totalPrice.price})
     </insert>
 
-    <select id="findById" parameterType="long" resultMap="order">
-        SELECT
-         *
-        FROM order JOIN product
-        ON order.productId = product.productId
-        WHERE
-            purchaseId = #{value}
-    </select>
+    <insert id="saveOrderLines" parameterType="order">
+        INSERT INTO order_lines
+            (orderId, productId)
+        VALUES
+            <foreach collection="orderLines" item="orderLine" open="(" separator="),(" close=")">
+                #{orderId}, #{orderLine.productId}
+            </foreach>
+    </insert>
 
-    <select id="findAll" parameterType="long" resultMap="order">
-        SELECT
-         *
-        FROM order JOIN product
-        ON order.productId = product.productId
-        WHERE
-            memberSequence = #{value}
+    <select id="findOrderHistoryByOrderId" parameterType="java.lang.Long" resultMap="order">
+
     </select>
 </mapper>

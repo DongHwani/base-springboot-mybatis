@@ -1,5 +1,6 @@
 package com.example.practice.order.domain;
 
+import com.example.practice.product.domain.Product;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
@@ -7,12 +8,13 @@ import java.util.List;
 
 @Mapper
 @Repository
-public interface OrderRepository {
+public interface OrderRepository extends OrderBaseSave {
 
-    void save(Order purchase);
+    default void save(Order order) {
+        saveOrder(order);
+        saveOrderLines(order);
+    }
 
-    Order findById(Long purchaseId);
-
-    List<Order> findAll(Long memberSequence);
+    List<Product> findOrderHistoryByOrderId(Long orderId);
 
 }

@@ -8,6 +8,9 @@ import com.example.practice.order.domain.Address;
 import io.github.benas.randombeans.EnhancedRandomBuilder;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 public class ProductDomainBuilder {
 
@@ -40,38 +43,10 @@ public class ProductDomainBuilder {
                 .build();
     }
 
-    public static Product provideHomeAppliance(String name, String image, int i) {
-        return Product.builder()
-                .productId(1L)
-                .seller(Member.builder().memberId("memberId1").build())
-                .price(new Money(BigInteger.valueOf(1000 + i)))
-                .category(Category.builder().categoryId(10L).build())
-                .productName(name)
-                .description("냉장냉장")
-                .image(image)
-                .build();
-    }
+    public static List<Product> provideProductList(int size) {
+        List<Product> products = new ArrayList<>();
+        IntStream.range(0,size).forEach(i -> products.add(provideProductBread()));
 
-    public static Product provideCoffee(String name) {
-        return Product.builder()
-                .productId(1L)
-                .seller(Member.builder().memberId("memberId1").build())
-                .price(new Money(BigInteger.valueOf(1000)))
-                .category(Category.builder().categoryId(8L).build())
-                .productName(name)
-                .description(name)
-                .image("D:/web")
-                .build();
-    }
-    public static Product provideTravel(String name) {
-        return Product.builder()
-                .productId(1L)
-                .seller(Member.builder().memberId("memberId1").build())
-                .price(new Money(BigInteger.valueOf(1000)))
-                .category(Category.builder().categoryId(11L).build())
-                .productName(name)
-                .description(name)
-                .image("D:/web")
-                .build();
+        return products;
     }
 }

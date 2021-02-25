@@ -1,11 +1,19 @@
 CREATE TABLE `practice`.`orders` (
 
   `orderId`          BIGINT(20)    NOT NULL AUTO_INCREMENT COMMENT '구매 번호',
-  `productId`        BIGINT(20)    NOT NULL                COMMENT '구매한 상품 번호',
-  `memberSequence`   BIGINT(20)    NOT NULL                COMMENT '구매인',
-  `price`            BIGINT(20)    NOT NULL                COMMENT '구매금액',
-  `address`          VARCHAR(20)   NOT NULL                COMMENT '주소',
-  `detailAddress`    VARCHAR(20)   NOT NULL                COMMENT '상세주소',
-  `zipcode`          VARCHAR(20)   NOT NULL                COMMENT '우편번호',
+  `memberId`         VARCHAR(150)  NOT NULL                COMMENT '구매자',
+  `totalPrice`       BIGINT(20)    NOT NULL                COMMENT '구매 총 금액',
 
-  PRIMARY KEY (`orderId`));
+  PRIMARY KEY (`orderId`)
+);
+
+CREATE TABLE `practice`.`order_lines` (
+
+  `orderLineId`      BIGINT(20)    NOT NULL AUTO_INCREMENT COMMENT '구매목록 번호',
+  `orderId`          BIGINT(20)    NOT NULL                COMMENT '구매 번호',
+  `productId`        BIGINT(20)     NOT NULL                COMMENT '구매자',
+
+  PRIMARY KEY (`orderLineId`)
+);
+
+

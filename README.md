@@ -144,7 +144,114 @@ resultMap에 맵핑시킬 수 있다.
 ![association](./img/Nested_Result_hasone.png)
 
 3.1.2) Nested Select
-3-2) has many 관계
+
+3-2) has many 관계(one to many)
+ 3-2-1) INSERT 
+~~~java
+@Builder @Getter @EqualsAndHashCode(exclude = { "buyer", "orderLines" })
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Order {
+
+    private Long orderId;
+    private Member buyer;
+    private Money totalPrice;
+    private List<Product> orderLines;
+    
+    //생략...
+}
+~~~
+~~~sql
+CREATE TABLE `practice`.`orders` (
+
+  `orderId`          BIGINT(20)    NOT NULL AUTO_INCREMENT COMMENT '구매 번호',
+  `memberId`         VARCHAR(150)  NOT NULL                COMMENT '구매자',
+  `totalPrice`       BIGINT(20)    NOT NULL                COMMENT '구매 총 금액',
+
+  PRIMARY KEY (`orderId`)
+);
+
+CREATE TABLE `practice`.`order_lines` (
+
+  `orderLineId`      BIGINT(20)    NOT NULL AUTO_INCREMENT COMMENT '구매목록 번호',
+  `orderId`          BIGINT(20)    NOT NULL                COMMENT '구매 번호',
+  `productId`        BIGINT(20)     NOT NULL                COMMENT '구매자',
+
+  PRIMARY KEY (`orderLineId`)
+);
+~~~
+주문을 의미하는 Order 도메인은 여러개의 상품을 가지고 있는 One to Many 관계이며, 테이블은 orders와 order_lines가 1:N관계를 갖고 있다.
+여기서 새로운 Order를 insert 할 경우, 두 개의 테이블에 orders와 oder_lines 두개의 테이블에 insert를 해야한다. 
+~~~java
+@Mapper
+@Repository
+public interface OrderRepository  {
+    Long saveOrder(Order order);
+    void saveOrderLines(Order order);
+}
+~~~
+~~~xml
+    <insert id="saveOrder" parameterType="com.example.practice.order.domain.Order"
+            useGeneratedKeys="true"  keyProperty="orderId" >
+      INSERT INTO orders
+        (orderId, memberId, totalPrice)
+      VALUES
+        (#{orderId}, #{buyer.memberId}, #{totalPrice.price})
+    </insert>
+
+    <insert id="saveOrderLines" parameterType="order">
+        INSERT INTO order_lines
+            (orderId, productId)
+        VALUES
+            <foreach collection="orderLines" item="orderLine" open="(" separator="),(" close=")">
+                #{orderId}, #{orderLine.productId}
+            </foreach>
+    </insert>
+~~~
+이렇게 OrderRepository에 order를 insert하는 메서드와 주문목록인 orderLines를 insert를 하는 메서드 두 개를 만들어 테이블에 저장할 수 있다.
+하지만, 이런 일반적인 방법은 객체의 연관관계가 아닌 테이블의 연관관계에 따라 Mapper를 사용하는 쪽에서 좀 더 구체적인 테이블 정보를 알아야하는 불편함이 있다. 
+JPA처럼 루트 도메인격인 Order 객체를 insert하면 연관관계에 있는 하위 도메인도 insert를 하여 좀 더 추상화 될 수 있는 방법이 없을까 고민하다가
+스택오버플로우에서 default 메서드를 사용하여 제공해주는 방법을 찾았다. 
+~~~java 
+@Mapper
+@Repository
+public interface OrderRepository extends OrderBaseSave {
+
+    Long saveOrder(Order order);
+    void saveOrderLines(Order order);
+    
+    default void save(Order order) {
+        saveOrder(order);
+        saveOrderLines(order);
+    }
+}
+~~~
+(출처 : https://stackoverflow.com/questions/33028923/mybatis-inserts-one-to-many-relationship)
+
+이렇게 하면 사용하는 쪽에서 save 메서드만 이용하면 Order와 Order 내부의 List형태인 orderlines 모두 테이블에 저장할 수 있게 된다. 
+하지만 saveOrder, saveOrderLines 두 개의 메서드가 공개가 되어 있기 때문에 살짝 아쉬웠다. 이 두 개의 메서드를 save라는 하나의 메서드로
+완전한 추상화를 제공하려면 상속 구조를 사용하면 된다. 
+~~~java 
+public interface OrderBaseSave {
+
+    Long saveOrder(Order order);
+    void saveOrderLines(Order orderLines);
+
+}
+
+@Mapper
+@Repository
+public interface OrderRepository extends OrderBaseSave {
+
+    default void save(Order order) {
+        saveOrder(order);
+        saveOrderLines(order);
+    }
+}
+~~~
+
+이 방법으로 Mapper를 사용하는 쪽에서는 테이블의 연관관계에 상관없이 save 메서드만 사용해서 객체와 연관된 객체들도 저장할 수 있게 된다. 
+ 3-2-2) SELECT 
 
 3-3) 생성자를 통한 객체 맵핑  
 Product 객체 내부에는 Money라는 객체가 있다. 
@@ -198,9 +305,8 @@ DB에서 조회 후 해당 값을 Money 객체의 생성자 파라미터로 넘�
 만약 데이터베이스에 강제로 실수로 음수값을 insert했다고 가정해보겠다. 
 
 ![음수값](./img/음수값insert.png)
-가격이 -1인 상품은 도메인 규칙에 어긋난다. 위의 생성자 태그를 사용하여 가격이 -1인 상품을 가져 올 경우 Reflection 예외가 발생하기 떄문에
-도메인 규칙을 지킬 수 있게 된다. 
-
+가격이 -1인 상품은 도메인 규칙에 어긋난다. 위의 생성자 태그를 사용하여 가격이 -1인 상품을 가져 올 경우 리플렉션 과정 중 
+도메인 예외가 발생하여 사전에 불필요한 값을 가져오지 못하도록 미연의 방지를 할 수 있게 된다. 
 ~~~java
 public class ProductRepositoryTest extends ProductDomainBuilder {
     @Test
@@ -211,6 +317,9 @@ public class ProductRepositoryTest extends ProductDomainBuilder {
     }
 }
 ~~~
+
+
 [Refference]
 - https://mybatis.org/spring-boot-starter/mybatis-spring-boot-autoconfigure
 - https://blog.mybatis.org/2019/01/mybatis-350-released.html
+- https://stackoverflow.com/questions/33028923/mybatis-inserts-one-to-many-relationship

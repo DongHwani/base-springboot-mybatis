@@ -1,67 +1,61 @@
 package com.example.practice.order.domain;
 
 import com.example.practice.member.domain.Member;
+import com.example.practice.product.domain.Money;
 import com.example.practice.product.domain.Product;
-import org.junit.jupiter.api.Test;
+import com.example.practice.product.domain.support.ProductDomainBuilder;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-
-@Transactional
-@Rollback(value = true)
-public class OrderRepositoryTest extends OrderBuilder {
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 
-    @Test
-    public void save() {
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+public class OrderRepositoryTest  {
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @ParameterizedTest
+    @MethodSource("provideOrderProducts")
+    public void save(List<Product> orderProducts) {
         //Given
+        BigInteger totalPrice = orderProducts.stream()
+                                        .map(p -> p.getMoney())
+                                        .reduce(BigInteger.ZERO, BigInteger::add);
         Order order = Order.builder()
-                .buyer(Member.builder().memberSequence(1L).build())
-                .price(BigInteger.valueOf(1000))
-                .product(Product.builder().productId(10L).build())
-                .purchaseAddress(Address.builder().address("서울")
-                        .detailAddress("동작구")
-                        .zipCode("101").build())
+                .buyer(Member.builder().memberId("구매자").build())
+                .totalPrice(new Money(totalPrice))
+                .orderLines(orderProducts)
                 .build();
 
         //When
         orderRepository.save(order);
 
         //Then
-        assertThat(order.getPurchaseId()).isNotNull();
+        assertAll(
+                () -> assertThat(order.getOrderId()).isNotNull()
+
+        );
     }
 
-    @Test
-    @Rollback(value = false)
-    public void findById() {
-        //Given
-        Order order = savePurchase();
-
-        //When
-        Order savedOrder = orderRepository.findById(order.getPurchaseId());
-
-        //Then
-        assertThat(order).isEqualTo(savedOrder);
+    private static Stream<Arguments> provideOrderProducts() {
+        return  Stream.of(
+                Arguments.of(
+                        ProductDomainBuilder.provideProductList(5)
+                )
+        );
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = {1, 2, 3, 4, 5, 6})
-    public void findAll(int expected) {
-        //Given & When
-        IntStream.rangeClosed(1, expected).forEach(i -> savePurchase());
-        Long memberSequence = 2L;
-
-        List<Order> orders = orderRepository.findAll(memberSequence);
-
-        //Then
-        assertThat(orders).hasSize(expected);
-    }
 }
