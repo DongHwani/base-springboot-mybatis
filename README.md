@@ -146,7 +146,9 @@ resultMap에 맵핑시킬 수 있다.
 3.1.2) Nested Select
 
 3-2) has many 관계(one to many)
- 3-2-1) INSERT 
+ one to many의 관계에서는 insert와 select 두 가지 과정에 대해 살펴보겠다.  
+      
+ - **INSERT 과정**   
 ~~~java
 @Builder @Getter @EqualsAndHashCode(exclude = { "buyer", "orderLines" })
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -180,8 +182,8 @@ CREATE TABLE `practice`.`order_lines` (
   PRIMARY KEY (`orderLineId`)
 );
 ~~~
-주문을 의미하는 Order 도메인은 여러개의 상품을 가지고 있는 One to Many 관계이며, 테이블은 orders와 order_lines가 1:N관계를 갖고 있다.
-여기서 새로운 Order를 insert 할 경우, 두 개의 테이블에 orders와 oder_lines 두개의 테이블에 insert를 해야한다. 
+주문을 의미하는 order 도메인은 여러개의 상품을 가지고 있는 One to Many 관계이며, 테이블은 orders와 order_lines가 1:N관계를 갖고 있다.
+여기서 새로운 order를 insert 할 경우, 두 개의 테이블에 orders와 oder_lines을를 insert를 해야한다. 
 ~~~java
 @Mapper
 @Repository
@@ -209,7 +211,21 @@ public interface OrderRepository  {
     </insert>
 ~~~
 이렇게 OrderRepository에 order를 insert하는 메서드와 주문목록인 orderLines를 insert를 하는 메서드 두 개를 만들어 테이블에 저장할 수 있다.
-하지만, 이런 일반적인 방법은 객체의 연관관계가 아닌 테이블의 연관관계에 따라 Mapper를 사용하는 쪽에서 좀 더 구체적인 테이블 정보를 알아야하는 불편함이 있다. 
+하지만, 이런 일반적인 방법은 객체의 연관관계가 아닌 테이블의 연관관계에 따라 Repository를 사용하는 쪽에서 좀 더 구체적인 테이블 정보를 알아야하는 불편함이 있다.
+~~~java
+ public class OrderRepositoryTest  {
+    @Autowired
+    private OrderRepository orderRepository;
+
+    public void save() {
+        //OrderRepository를 사용하는 쪽에서 두 개의 메서드를 사용해야 정상적으로 두 테이블에 데이터가 저장된다.
+        //순서 또한 지켜줘야한다는 불편함이 있다.
+        orderRepository.saveOrder(order);
+        orderRepository.saveOrderLines(order);
+    }
+}
+~~~
+
 JPA처럼 루트 도메인격인 Order 객체를 insert하면 연관관계에 있는 하위 도메인도 insert를 하여 좀 더 추상화 될 수 있는 방법이 없을까 고민하다가
 스택오버플로우에서 default 메서드를 사용하여 제공해주는 방법을 찾았다. 
 ~~~java 
@@ -228,9 +244,22 @@ public interface OrderRepository extends OrderBaseSave {
 ~~~
 (출처 : https://stackoverflow.com/questions/33028923/mybatis-inserts-one-to-many-relationship)
 
-이렇게 하면 사용하는 쪽에서 save 메서드만 이용하면 Order와 Order 내부의 List형태인 orderlines 모두 테이블에 저장할 수 있게 된다. 
-하지만 saveOrder, saveOrderLines 두 개의 메서드가 공개가 되어 있기 때문에 살짝 아쉬웠다. 이 두 개의 메서드를 save라는 하나의 메서드로
-완전한 추상화를 제공하려면 상속 구조를 사용하면 된다. 
+이렇게 하면 사용하는 쪽에서 save 메서드만 사용해도 두 테이블에 저장할 수 있게 된다. 
+~~~java
+ public class OrderRepositoryTest  {
+    @Autowired
+    private OrderRepository orderRepository;
+
+    public void save() {
+        //이런 방법도 있었구나 
+        orderRepository.save(order);
+    }
+}
+~~~
+하지만 saveOrder, saveOrderLines 두 개 메서드가 여전히 공개된 상태이기 때문에 사용하는 쪽에서 해당 메서드를 사용 할 문제가 있다. 
+![dfeault메서드를사용한방식](./img/oneToMany-insert.png)
+
+이 두 개의 메서드를 save라는 하나의 메서드로 사용하는 쪽에 제공하려면, 상속 구조를 사용하면 된다. 
 ~~~java 
 public interface OrderBaseSave {
 
@@ -249,9 +278,15 @@ public interface OrderRepository extends OrderBaseSave {
     }
 }
 ~~~
+이 방법으로 Repository를 사용하는 쪽에서는 테이블의 연관관계에 상관없이 save 메서드만 사용해서 객체와 연관된 객체들도 저장할 수 있게 된다.   
 
-이 방법으로 Mapper를 사용하는 쪽에서는 테이블의 연관관계에 상관없이 save 메서드만 사용해서 객체와 연관된 객체들도 저장할 수 있게 된다. 
- 3-2-2) SELECT 
+ - **SELECT 과정**  
+ 
+ 
+ 
+ 
+ 
+ 
 
 3-3) 생성자를 통한 객체 맵핑  
 Product 객체 내부에는 Money라는 객체가 있다. 
