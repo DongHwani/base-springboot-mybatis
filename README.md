@@ -1,4 +1,4 @@
-### SpringBoot - Mybatis 설정 및 연관관계 맵핑 (작성중)
+### SpringBoot - Mybatis 설정 및 연관관계 맵핑
 SpringBoot-Mybatis 프로젝트 환경에서 제공해주는 기본옵션들과 
 Mybatis에서 제공하는 연관관계 맵핑과 관련하여 정리하였다. 
 
