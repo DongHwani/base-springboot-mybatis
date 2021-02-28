@@ -6,5 +6,6 @@
     <typeAliases>
         <typeAlias type="com.example.practice.category.domain.Category" alias="category"/>
         <typeAlias type="com.example.practice.order.domain.Order" alias="order"/>
+        <typeAlias type="com.example.practice.product.domain.Product" alias="product"/>
     </typeAliases>
 </configuration>

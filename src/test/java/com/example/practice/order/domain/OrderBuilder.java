@@ -20,10 +20,10 @@ public class OrderBuilder {
         return order;
     }
 
-    private static OrderLines provideOrderLines(int size, Member seller) {
+    private static  List<OrderLine> provideOrderLines(int size, Member seller) {
         List<OrderLine> orderLines = new ArrayList<>();
         IntStream.range(0, size).forEach(i -> orderLines.add(provideOrderLine(seller)));
-        return new OrderLines(orderLines);
+        return orderLines;
     }
 
     private static OrderLine provideOrderLine(Member seller) {

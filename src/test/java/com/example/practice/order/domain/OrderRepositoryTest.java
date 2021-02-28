@@ -45,24 +45,21 @@ public class OrderRepositoryTest {
         );
     }
 
-//    @Test
-//    public void findByOrderWithOrderLinesTest() {
-//        //Given
-//        Order order = OrderBuilderTest.provideOrder(5, seller);
-//
-//        memberRepository.save(order.getBuyer());
-//        orderRepository.save(order);
-//
-//        //When
-//        Order savedOrder = orderRepository.findByIdWithOrderLines(order.getOrderId());
-//
-//        //Then
-//        assertAll(
-//                () -> assertThat(order).isEqualTo(savedOrder),
-//                () -> assertThat(order.countOrderLines()).isEqualTo(savedOrder.countOrderLines())
-//        );
-//
-//    }
+    @Test
+    public void findByOrderWithOrderLinesTest() {
+        //Given
+        Order order = OrderBuilder.provideOrder(5, seller);
+        orderRepository.save(order);
+
+        //When
+        Order savedOrder = orderRepository.findByIdWithOrderLines(order.getOrderId());
+
+        //Then
+        assertAll(
+                () -> assertThat(order).isEqualTo(savedOrder),
+                () -> assertThat(order.countOrderLines()).isEqualTo(savedOrder.countOrderLines())
+        );
+    }
 
 
 

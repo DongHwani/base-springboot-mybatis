@@ -63,17 +63,8 @@ mybatis.mapper-locations=mybatis/mapper/*.xml
 ##### 3. 연관관계 맵핑
 
 3.1) has one 관계   
-has one 관계인 객체로 맵핑할 경우 `<association>` 태그로 맵핑할 수 있으며, 두 가지 맵핑 전략이 존재한다.  
-
-- Nested Result : 하나의 JOIN 쿼리로 결과를 맵핑하는 방법
-- Nested Select : 다른 맵핑된 SQL 구문을 실행하여 맵핑하는 방법
-
-3.1.1) Nested Result  
+has one 관계인 객체로 맵핑할 경우 `<association>` 태그를 사용하여 맵핑 할 수 있다.   
 ~~~java
-@Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(exclude = {"seller", "productName", "image", "description", "registeredDate", "price", "category"})
 public class Product {
 	
 	private Long productId;
@@ -87,10 +78,6 @@ public class Product {
     
     //생략.. 
 }
-@Getter
-@Builder @ToString
-@AllArgsConstructor @NoArgsConstructor
-@EqualsAndHashCode(exclude ={ "password", "phoneNumber", "address", "detailAddress", "zipCode"})
 public class Member {
 
     private Long memberSequence;
@@ -100,6 +87,34 @@ public class Member {
 
 }
 ~~~ 
+~~~sql
+CREATE TABLE `practice`.`members` (
+
+  `memberSequence`     BIGINT(20)          NOT NULL AUTO_INCREMENT COMMENT '유저 번호',
+  `memberId`          VARCHAR(150)         NOT NULL                COMMENT '유저 ID',
+  `password`          VARCHAR(150)         NOT NULL                COMMENT '유저 패스워드',
+  `phoneNumber`       VARCHAR(150)         NOT NULL                COMMENT '유저 전화번호',
+  `address`           VARCHAR(300)         NOT NULL                COMMENT '유저 주소',
+  `detailAddress`     VARCHAR(300)         NOT NULL                COMMENT '유저 주소',
+  `zipCode`           VARCHAR(50)          NOT NULL                COMMENT '유저 주소',
+
+  PRIMARY KEY (`memberSequence`));
+
+CREATE TABLE `practice`.`products` (
+
+  `productId`       BIGINT(20)    NOT NULL AUTO_INCREMENT COMMENT '상품 번호',
+  `productName`     VARCHAR(150)  NOT NULL                COMMENT '상품 이름',
+  `sellerId`        VARCHAR(100)  NOT NULL                COMMENT '작성자',
+  `image`           VARCHAR(200)  NOT NULL                COMMENT '상품 이미지',
+  `price`           BIGINT        NOT NULL                COMMENT '상품가격',
+  `description`     VARCHAR(500)  NOT NULL                COMMENT '상품설명',
+  `registeredDate`  DATE          NOT NULL                COMMENT '등록일자',
+  `categoryId`      BIGINT(20)    NOT NULL                COMMENT '카테고리 번호',
+
+  PRIMARY KEY (`productId`));
+~~~
+상품을 의미하는 Product 클래스는 판매자를 의미하는 Member 클래스를 값 타입으로 가지고 있다. Product 클래스에 값들을 맵핑시키려면 products 테이블과
+members 테이블을 JOIN한 결과값을 Product 클래스에 맵핑하면 된다. 
 ~~~xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
@@ -116,8 +131,6 @@ public class Member {
         <association property="seller"         javaType="com.example.practice.member.domain.Member">
             <id property="memberSequence"       column="memberSequence"/>
             <result property="memberId"         column="memberId"/>
-            <result property="phoneNumber"      column="phoneNumber"/>
-            <result property="description"      column="address"/>
         </association>
     </resultMap>
 
@@ -137,31 +150,35 @@ public class Member {
 
 </mapper>
 ~~~
-Product 도메인이 Member타입의 seller라는 객체를 값으로 가지고 있었고, 이를 association 태그와 JOIN쿼리문을 사용하여
-resultMap에 맵핑시킬 수 있다.  
 
 <테스트결과>
 ![association](./img/Nested_Result_hasone.png)
 
-3.1.2) Nested Select
 
 3-2) has many 관계(one to many)
  one to many의 관계에서는 insert와 select 두 가지 과정에 대해 살펴보겠다.  
       
  - **INSERT 과정**   
 ~~~java
-@Builder @Getter @EqualsAndHashCode(exclude = { "buyer", "orderLines" })
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order {
 
     private Long orderId;
     private Member buyer;
     private Money totalPrice;
-    private List<Product> orderLines;
-    
+    private List<OrderLine> orderLines;
+
+    public int countOrderLines() {
+        return orderLines.size();
+    }
     //생략...
 }
+public class OrderLine {
+
+    private Long orderLineId;
+    private Product product;
+
+}
+
 ~~~
 ~~~sql
 CREATE TABLE `practice`.`orders` (
@@ -182,8 +199,9 @@ CREATE TABLE `practice`.`order_lines` (
   PRIMARY KEY (`orderLineId`)
 );
 ~~~
-주문을 의미하는 order 도메인은 여러개의 상품을 가지고 있는 One to Many 관계이며, 테이블은 orders와 order_lines가 1:N관계를 갖고 있다.
-여기서 새로운 order를 insert 할 경우, 두 개의 테이블에 orders와 oder_lines을를 insert를 해야한다. 
+주문을 의미하는 Order는 1개 이상의 상품을 구매 할 수 있다. 하나의 주문은  여러개의 주문상품을 가질 수 있기때문에 one to many의 관계를 가진다. 
+여기서 새로운 order가 insert 될 경우, 주문을 의미하는 orders 테이블에 저장이 되야하며, 해당 주문에 포함되어있는 상품목록들을 order_lines 테이블에 저장해야한다.
+
 ~~~java
 @Mapper
 @Repository
@@ -206,7 +224,7 @@ public interface OrderRepository  {
             (orderId, productId)
         VALUES
             <foreach collection="orderLines" item="orderLine" open="(" separator="),(" close=")">
-                #{orderId}, #{orderLine.productId}
+                #{orderId}, #{orderLine.product.productId}
             </foreach>
     </insert>
 ~~~
@@ -281,12 +299,72 @@ public interface OrderRepository extends OrderBaseSave {
 이 방법으로 Repository를 사용하는 쪽에서는 테이블의 연관관계에 상관없이 save 메서드만 사용해서 객체와 연관된 객체들도 저장할 수 있게 된다.   
 
  - **SELECT 과정**  
- 
- 
- 
- 
- 
- 
+ one to many의 조회 결과는 테이블간의 Join 쿼리로 결과값에 대해 `<collection>` 태그를 사용하여 객체에 맵핑 할 수 있다.
+~~~xml
+<mapper namespace="com.example.practice.order.domain.OrderRepository">
+   <resultMap id="order" type="order">
+        <id property="orderId"                  column="orderId"/>
+        <association property="buyer"           javaType="com.example.practice.member.domain.Member">
+            <id property="memberSequence"       column="memberSequence"/>
+            <result property="memberId"         column="buyerId"/>
+        </association>
+        <association property="totalPrice" resultMap="money" />
+        <collection property="orderLines" ofType="com.example.practice.order.domain.OrderLine">
+                <id property="orderLineId"          column="orderLineId"/>
+                <association property="product"     javaType="product">
+                    <id property="productId"        column="productId"/>
+                    <result property="productName"  column="productName"/>
+                </association>
+        </collection>
+    </resultMap>
+
+    <resultMap id="money" type="com.example.practice.product.domain.Money">
+        <constructor>
+            <arg  column="totalPrice" javaType="java.math.BigInteger" ></arg>
+        </constructor>
+    </resultMap>
+
+    <select id="findByIdWithOrderLines" parameterType="java.lang.Long" resultMap="order">
+        SELECT
+            o.orderId,
+            o.totalPrice,
+            m.memberSequence,
+            m.memberId AS buyerId,
+            l.orderLineId,
+            p.productId,
+            p.productName
+        FROM orders o
+            INNER JOIN members m ON o.memberId = m.memberId
+            INNER JOIN order_lines l ON o.orderId = l.orderId
+            INNER JOIN products p ON l.productId = p.productId
+        WHERE
+           o.orderId = #{orderId}
+    </select>
+</mapper>
+~~~
+`<collection>` 태그의 `ofType`의 속성은 제네릭을 의미한다. `List<OrderLine>`의 형태이기 때문에 ofType에는 OrderLine 클래스를 입력하였다. 
+~~~java
+public class OrderRepositoryTest {
+    @Test
+    public void findByOrderWithOrderLinesTest() {
+        //Given
+        Order order = OrderBuilder.provideOrder(5, seller);
+        orderRepository.save(order);
+
+        //When
+        Order savedOrder = orderRepository.findByIdWithOrderLines(order.getOrderId());
+
+        //Then
+        assertAll(
+                () -> assertThat(order).isEqualTo(savedOrder),
+                () -> assertThat(order.countOrderLines()).isEqualTo(savedOrder.countOrderLines())
+        );
+    }
+}
+~~~
+<테스트 결과>
+![collection결과](./img/collection결과.png)
+ orderLines 필드에 값들이 잘 들어온 걸 확인 할 수 있다. 
 
 3-3) 생성자를 통한 객체 맵핑  
 Product 객체 내부에는 Money라는 객체가 있다. 
@@ -353,6 +431,9 @@ public class ProductRepositoryTest extends ProductDomainBuilder {
 }
 ~~~
 
+##### 4. 정리
+Mybatis의 연관관계 맵핑에 가장 기본적인 요소들만 정리하였다. Mybatis는 한글 공식문서를 지원하기 때문에 기본적인 맵핑 방식에 대해서는
+쉽게 자료를 구할 수 있어, 어렵지 않게 구현할 수 있었다. 다음에는 Enum타입에 대한 맵핑방식과 Lazyloading에 대한 맵핑 방식에 대해서 정리해봐야겠다.  
 
 [Refference]
 - https://mybatis.org/spring-boot-starter/mybatis-spring-boot-autoconfigure

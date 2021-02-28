@@ -6,23 +6,24 @@
 
     <resultMap id="order" type="order">
         <id property="orderId"                  column="orderId"/>
-
         <association property="buyer"           javaType="com.example.practice.member.domain.Member">
             <id property="memberSequence"       column="memberSequence"/>
-            <result property="memberId"         column="memberId"/>
+            <result property="memberId"         column="buyerId"/>
         </association>
-
-        <association property="orderLines"     javaType="com.example.practice.order.domain.OrderLines">
-            <collection property="orderLines">
-                <id property="orderLineId"             column="orderLineId"/>
-                <result property="productName"       column="productName"/>
-                    <association property="price"  javaType="com.example.practice.product.domain.Money">
-                    <constructor>
-                        <arg  column="price" javaType="java.math.BigInteger" ></arg>
-                    </constructor>
+        <association property="totalPrice" resultMap="money" />
+        <collection property="orderLines" ofType="com.example.practice.order.domain.OrderLine">
+                <id property="orderLineId"          column="orderLineId"/>
+                <association property="product"     javaType="product">
+                    <id property="productId"        column="productId"/>
+                    <result property="productName"  column="productName"/>
                 </association>
-            </collection>
-        </association>
+        </collection>
+    </resultMap>
+
+    <resultMap id="money" type="com.example.practice.product.domain.Money">
+        <constructor>
+            <arg  column="totalPrice" javaType="java.math.BigInteger" ></arg>
+        </constructor>
     </resultMap>
 
     <insert id="saveOrder" parameterType="com.example.practice.order.domain.Order"
@@ -37,7 +38,7 @@
         INSERT INTO order_lines
             (orderId, productId)
         VALUES
-            <foreach collection="orderLines.orderLines" item="orderLine" open="(" separator="),(" close=")">
+            <foreach collection="orderLines" item="orderLine" open="(" separator="),(" close=")">
                 #{orderId}, #{orderLine.product.productId}
             </foreach>
     </insert>
@@ -45,11 +46,17 @@
     <select id="findByIdWithOrderLines" parameterType="java.lang.Long" resultMap="order">
         SELECT
             o.orderId,
-            o.memberId,
-            o.totalPrice
+            o.totalPrice,
+            m.memberSequence,
+            m.memberId AS buyerId,
+            l.orderLineId,
+            p.productId,
+            p.productName
         FROM orders o
-        INNER JOIN members m ON o.memberId = m.memberId
-        INNER JOIN order_lines l ON o.orderId = l.orderId
-
+            INNER JOIN members m ON o.memberId = m.memberId
+            INNER JOIN order_lines l ON o.orderId = l.orderId
+            INNER JOIN products p ON l.productId = p.productId
+        WHERE
+           o.orderId = #{orderId}
     </select>
 </mapper>
